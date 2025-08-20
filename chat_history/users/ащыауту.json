@@ -1,0 +1,22 @@
+[ {
+  "id" : "e3028e79-9080-4fd7-9a56-d735dd5e15e2",
+  "sender" : "ащыауту",
+  "content" : "5",
+  "timestamp" : 1755657680.000000000,
+  "room" : null,
+  "receiver" : "fosfene"
+}, {
+  "id" : "8f9649a2-75d1-4e28-964b-b2a108acf37d",
+  "sender" : "ащыауту",
+  "content" : "3",
+  "timestamp" : 1755652341.611045900,
+  "room" : null,
+  "receiver" : "fosfene"
+}, {
+  "id" : "2b38cc17-fce5-4876-ac77-934d1fdf8120",
+  "sender" : "ащыауту",
+  "content" : "4",
+  "timestamp" : 1755652342.420888400,
+  "room" : null,
+  "receiver" : "fosfene"
+} ]

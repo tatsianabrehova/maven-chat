@@ -1,0 +1,15 @@
+[ {
+  "id" : "0566e516-0d09-4473-aa9f-a9834719d21f",
+  "sender" : "",
+  "content" : "1",
+  "timestamp" : 1755697358.323431600,
+  "room" : null,
+  "receiver" : "fosfene"
+}, {
+  "id" : "77c36e65-57da-42c0-b0e6-8936a25b0fae",
+  "sender" : "",
+  "content" : "2",
+  "timestamp" : 1755697359.684002600,
+  "room" : null,
+  "receiver" : "fosfene"
+} ]
