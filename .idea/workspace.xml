@@ -5,33 +5,11 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="df443e87-879d-4f14-9050-9ab9d5149163" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/encodings.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/uiDesigner.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/vcs.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Dockerfile" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/README.md" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/chat_history/chat.log" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/chat_history/private/fosfene_ащыауту.json" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/chat_history/rooms/hub.json" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/chat_history/users/.json" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/chat_history/users/System.json" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/chat_history/users/fosfene.json" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/chat_history/users/ащыауту.json" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/docker-compose.yml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/pom.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/com/example/kafkachat/Main.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/com/example/kafkachat/gui/ChatGui.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/com/example/kafkachat/gui/PrivateChatGui.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/com/example/kafkachat/gui/StartingUpDialog.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/com/example/kafkachat/kafka/KafkaConsumerService.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/com/example/kafkachat/kafka/KafkaProducerService.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/com/example/kafkachat/model/ChatMessage.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/com/example/kafkachat/service/History.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/com/example/kafkachat/service/PrivateMessage.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/com/example/kafkachat/service/UserRoster.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/deploy/create-topics.ps1" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/deploy/create-topics.sh" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/README.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/docker-compose.yml" beforeDir="false" afterPath="$PROJECT_DIR$/deploy/docker-compose.yml" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -74,7 +52,7 @@
     "RunOnceActivity.OpenProjectViewOnStart": "true",
     "RunOnceActivity.ShowReadmeOnStart": "true",
     "SHARE_PROJECT_CONFIGURATION_FILES": "true",
-    "git-widget-placeholder": "master",
+    "git-widget-placeholder": "main",
     "last_opened_file_path": "C:/Users/Admin/JavaLibraries/jackson-databind-2.20.0-rc1.jar",
     "project.structure.last.edited": "Modules",
     "project.structure.proportion": "0.0",
@@ -84,6 +62,9 @@
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
       <recent name="C:\Users\Admin\IdeaProjects\maven-chat" />
+    </key>
+    <key name="MoveFile.RECENT_KEYS">
+      <recent name="C:\Users\Admin\IdeaProjects\maven-chat\deploy" />
     </key>
   </component>
   <component name="RunManager">
@@ -115,6 +96,17 @@
       <updated>1755194919569</updated>
     </task>
     <servers />
+  </component>
+  <component name="Vcs.Log.Tabs.Properties">
+    <option name="TAB_STATES">
+      <map>
+        <entry key="MAIN">
+          <value>
+            <State />
+          </value>
+        </entry>
+      </map>
+    </option>
   </component>
   <component name="VcsManagerConfiguration">
     <option name="ADD_EXTERNAL_FILES_SILENTLY" value="true" />
