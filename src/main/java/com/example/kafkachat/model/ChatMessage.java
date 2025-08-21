@@ -36,10 +36,8 @@ public class ChatMessage {
     private String  room;
     private String  receiver;
 
-    /** Для Jackson */
     public ChatMessage() {}
 
-    /** “Красивый” конструктор для остального кода */
     public ChatMessage(String sender,
                        String content,
                        String room,

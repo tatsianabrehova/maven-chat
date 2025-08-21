@@ -95,10 +95,8 @@ public final class UserRoster {
         getPrivateHistoryForUser(receiver).add(msg);
     }
 
-    /* -------------------- internal -------------------- */
-
     private void loadAllData() {
-        /* --- собираем юзеров из /users/*.json --- */
+        /* собираем юзеров из /users/*.json */
         Path usersDir = history.root.resolve("users");
         File[] userFiles = usersDir.toFile().listFiles(
                 (dir, name) -> name.endsWith(".json"));
@@ -108,7 +106,6 @@ public final class UserRoster {
             }
         }
 
-        /* --- загружаем историю комнат --- */
         Path roomsDir = history.root.resolve("rooms");
         try (DirectoryStream<Path> ds = Files.newDirectoryStream(roomsDir)) {
             for (Path p : ds) {
@@ -117,7 +114,6 @@ public final class UserRoster {
             }
         } catch (IOException ignore) {}
 
-        /* --- загружаем историю личных чатов --- */
         for (String u : users) {
             userMessages.put(u, history.loadUserMessages(u));
         }

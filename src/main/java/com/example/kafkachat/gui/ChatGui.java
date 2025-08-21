@@ -74,7 +74,7 @@ public class ChatGui extends JFrame {
         setVisible(true);
     }
 
-    /* ---------- helpers ---------- */
+    /* helpers */
 
     private void buildLayout() {
         setLayout(new BorderLayout(5, 5));

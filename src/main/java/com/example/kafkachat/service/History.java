@@ -98,9 +98,4 @@ public final class History {
         objectMapper.writerWithDefaultPrettyPrinter()
                 .writeValue(file.toFile(), list);
     }
-
-    /* -------------------- облегчённое логирование (опционально) -------------------- */
-    private void logEvent(String fmt, Object... args) {
-        System.out.printf(fmt + "%n", args);
-    }
 }
