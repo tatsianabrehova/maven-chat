@@ -10,7 +10,6 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
-
 /**
  * КЛАСС UserRoster - СЕРВИС УПРАВЛЕНИЯ ПОЛЬЗОВАТЕЛЯМИ И ИСТОРИЕЙ СООБЩЕНИЙ
  *
@@ -30,24 +29,19 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public final class UserRoster {
 
-    private static final String ROOT = "chat_history";
-    private static final History history = new History(Paths.get(ROOT));
+    private static final String root = "chat_history";
+    private static final History history = new History(Paths.get(root));
     private static volatile UserRoster instance;
 
-    private final Set<String> users = ConcurrentHashMap.newKeySet();
+    private final Set<String> users         = ConcurrentHashMap.newKeySet();
     private final Map<String, List<ChatMessage>> roomMessages = new ConcurrentHashMap<>();
     private final Map<String, List<ChatMessage>> userMessages = new ConcurrentHashMap<>();
 
-    /**
-     * Получение экземпляра Singleton
-     * @return единственный экземпляр UserRoster
-     */
     public static UserRoster getInstance() {
         if (instance == null) {
             synchronized (UserRoster.class) {
-                if (instance == null) {
+                if (instance == null)
                     instance = new UserRoster();
-                }
             }
         }
         return instance;
@@ -57,83 +51,42 @@ public final class UserRoster {
         loadAllData();
     }
 
-    /**
-     * Регистрация нового пользователя
-     * @param username имя пользователя для регистрации
-     */
+    /* -------------------- API -------------------- */
+
     public void register(String username) {
         users.add(username);
     }
 
-    /**
-     * Получение списка всех зарегистрированных пользователей
-     * @return коллекция имен пользователей
-     */
     public Collection<String> allUsers() {
-        return Collections.unmodifiableCollection(users);
+        return users;
     }
 
-    /**
-     * Получение истории сообщений комнаты
-     * @param room название комнаты
-     * @return список сообщений комнаты
-     */
     public List<ChatMessage> getRoomHistory(String room) {
         return roomMessages.computeIfAbsent(room, history::loadRoomMessages);
     }
-
-    /**
-     * Получение истории приватных сообщений пользователя
-     * @param username имя пользователя
-     * @return список приватных сообщений
-     */
-    public List<ChatMessage> getPrivateHistoryForUser(String username) {
-        return userMessages.computeIfAbsent(username, history::loadUserMessages);
-    }
-
-    /**
-     * Получение истории диалога между двумя пользователями
-     * @param userA первый пользователь
-     * @param userB второй пользователь
-     * @return отсортированный по времени список сообщений
-     */
     public List<ChatMessage> getDialogHistory(String userA, String userB) {
         return getPrivateHistoryForUser(userA)
                 .stream()
                 .filter(m -> (userB.equals(m.getSender()) && userA.equals(m.getReceiver())) ||
                         (userA.equals(m.getSender()) && userB.equals(m.getReceiver())))
-                .sorted(Comparator.comparing(ChatMessage::getTimestamp))
+                .sorted(java.util.Comparator.comparing(ChatMessage::getTimestamp))
                 .toList();
     }
-
-    /**
-     * Обработка входа пользователя в комнату
-     * @param room название комнаты
-     * @param username имя пользователя
-     */
-    public void joinRoom(String room, String username) {
-        ChatMessage sysMsg = new ChatMessage("System", username + " вошёл", room, null);
-        history.saveRoomMessage(room, sysMsg);
-        getRoomHistory(room).add(sysMsg); // вот этого не хватало
+    public List<ChatMessage> getPrivateHistoryForUser(String username) {
+        return userMessages.computeIfAbsent(username, history::loadUserMessages);
     }
 
+    public void joinRoom(String room, String username) {
+        history.saveRoomMessage(room,
+                new ChatMessage("System", username + " вошёл", room, null));
+        getRoomHistory(room);  // touch & refresh
+    }
 
-    /**
-     * Отправка сообщения в комнату
-     * @param room название комнаты
-     * @param msg сообщение
-     */
     public void sendRoomMessage(String room, ChatMessage msg) {
         history.saveRoomMessage(room, msg);
         getRoomHistory(room).add(msg);
     }
 
-    /**
-     * Отправка приватного сообщения
-     * @param sender отправитель
-     * @param receiver получатель
-     * @param txt текст сообщения
-     */
     public void sendPrivateMessage(String sender, String receiver, String txt) {
         var msg = new ChatMessage(sender, txt, null, receiver);
         history.saveUserMessage(sender, msg);
@@ -142,47 +95,31 @@ public final class UserRoster {
         getPrivateHistoryForUser(receiver).add(msg);
     }
 
-    /**
-     * Загрузка всех данных при инициализации
-     */
-    private void loadAllData() {
-        loadUsersFromFiles();
-        loadRoomHistory();
-        loadUserHistory();
-    }
+    /* -------------------- internal -------------------- */
 
-    /**
-     * Загрузка списка пользователей из файлов
-     */
-    private void loadUsersFromFiles() {
+    private void loadAllData() {
+        /* --- собираем юзеров из /users/*.json --- */
         Path usersDir = history.root.resolve("users");
         File[] userFiles = usersDir.toFile().listFiles(
                 (dir, name) -> name.endsWith(".json"));
         if (userFiles != null) {
-            Arrays.stream(userFiles)
-                    .map(f -> f.getName().replace(".json", ""))
-                    .forEach(users::add);
+            for (File f : userFiles) {
+                users.add(f.getName().replace(".json", ""));
+            }
         }
-    }
 
-    /**
-     * Загрузка истории комнат
-     */
-    private void loadRoomHistory() {
+        /* --- загружаем историю комнат --- */
         Path roomsDir = history.root.resolve("rooms");
         try (DirectoryStream<Path> ds = Files.newDirectoryStream(roomsDir)) {
-            ds.forEach(p -> {
+            for (Path p : ds) {
                 String roomName = p.getFileName().toString().replace(".json", "");
                 roomMessages.put(roomName, history.loadRoomMessages(roomName));
-            });
-        } catch (IOException ignore) {
-        }
-    }
+            }
+        } catch (IOException ignore) {}
 
-    /**
-     * Загрузка истории пользователей
-     */
-    private void loadUserHistory() {
-        users.forEach(u -> userMessages.put(u, history.loadUserMessages(u)));
+        /* --- загружаем историю личных чатов --- */
+        for (String u : users) {
+            userMessages.put(u, history.loadUserMessages(u));
+        }
     }
 }

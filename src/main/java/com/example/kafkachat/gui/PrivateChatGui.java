@@ -54,6 +54,7 @@ public class PrivateChatGui extends JFrame {
         south.add(input, BorderLayout.CENTER);
         south.add(send, BorderLayout.EAST);
         add(south, BorderLayout.SOUTH);
+
         send.addActionListener(e -> sendMsg());
         input.addActionListener(e -> sendMsg());
         loadHistory();
@@ -62,7 +63,9 @@ public class PrivateChatGui extends JFrame {
 
     private void loadHistory() {
         List<ChatMessage> hist = userRoster.getDialogHistory(sender, receiver);
-        SwingUtilities.invokeLater(() -> hist.forEach(this::printMsg));
+        SwingUtilities.invokeLater(() -> {
+            hist.forEach(this::printMsg);
+        });
     }
 
     private void sendMsg() {

@@ -1,10 +1,36 @@
 [ {
-  "id" : "3bf87e02-df9c-49ed-8921-2f1070e72018",
+  "id" : "2108c802-9f5b-4e89-b6ed-44b4511a0eb9",
   "sender" : "System",
   "content" : "fosfene вошёл",
-  "timestamp" : 1755702810.365793700,
+  "timestamp" : 1755788823.171739000,
   "room" : "hub",
-  "receiver" : null,
-  "public" : true,
-  "private" : false
+  "receiver" : null
+}, {
+  "id" : "0f0e7368-1196-412f-81fb-d02970b31f55",
+  "sender" : "fosfene",
+  "content" : "5",
+  "timestamp" : 1755788825.564689900,
+  "room" : "hub",
+  "receiver" : null
+}, {
+  "id" : "9a757975-de91-462b-884b-a42c95bb8553",
+  "sender" : "fosfene",
+  "content" : "6",
+  "timestamp" : 1755788825.875914400,
+  "room" : "hub",
+  "receiver" : null
+}, {
+  "id" : "94197a59-1fcd-4a88-a9b6-79328084902d",
+  "sender" : "fosfene",
+  "content" : "7",
+  "timestamp" : 1755788826.167329300,
+  "room" : "hub",
+  "receiver" : null
+}, {
+  "id" : "58da6227-65b7-4c3c-b085-d30b26317675",
+  "sender" : "System",
+  "content" : "ащыауту вошёл",
+  "timestamp" : 1755788850.073888100,
+  "room" : "hub",
+  "receiver" : null
 } ]

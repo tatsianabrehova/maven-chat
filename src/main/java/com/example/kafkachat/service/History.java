@@ -11,7 +11,6 @@ import java.nio.file.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Stream;
-
 /**
  * КЛАСС History - СЕРВИС ХРАНЕНИЯ И ЗАГРУЗКИ ИСТОРИИ СООБЩЕНИЙ
  *
@@ -33,135 +32,75 @@ import java.util.stream.Stream;
 public final class History {
 
     private static final Logger log = LoggerFactory.getLogger(History.class);
-
-    // Инициализация ObjectMapper с поддержкой Java Time модулей
     private final ObjectMapper objectMapper = new ObjectMapper()
-            .findAndRegisterModules();
+            .findAndRegisterModules();  // java-time module registration
 
-    protected final Path root;
+    final Path root;
 
-    /**
-     * Конструктор сервиса истории сообщений
-     * @param root корневая директория для хранения файлов истории
-     */
     public History(Path root) {
         this.root = root;
         init();
     }
 
-    /**
-     * Инициализация директорий для хранения истории
-     * Создает папки rooms и users в корневой директории
-     */
     private void init() {
         try {
             Files.createDirectories(root.resolve("rooms"));
             Files.createDirectories(root.resolve("users"));
-            log.info("Директории истории инициализированы: {}", root);
         } catch (IOException e) {
-            log.error("Ошибка создания директорий истории", e);
+            log.error("history dirs", e);
         }
     }
 
+    /* -------------------- public API -------------------- */
 
-    /**
-     * Загрузка истории сообщений комнаты
-     * @param room название комнаты
-     * @return список сообщений комнаты
-     */
     public List<ChatMessage> loadRoomMessages(String room) {
         return readList(root.resolve("rooms").resolve(room + ".json"));
     }
 
-    /**
-     * Загрузка истории личных сообщений пользователя
-     * @param username имя пользователя
-     * @return список личных сообщений пользователя
-     */
     public List<ChatMessage> loadUserMessages(String username) {
         return readList(root.resolve("users").resolve(username + ".json"));
     }
 
-    /**
-     * Сохранение сообщения в историю комнаты
-     * @param room название комнаты
-     * @param message сообщение для сохранения
-     */
     public void saveRoomMessage(String room, ChatMessage message) {
         save(root.resolve("rooms").resolve(room + ".json"), message);
     }
 
-    /**
-     * Сохранение личного сообщения в историю пользователя
-     * @param username имя пользователя
-     * @param message личное сообщение для сохранения
-     */
     public void saveUserMessage(String username, ChatMessage message) {
         save(root.resolve("users").resolve(username + ".json"), message);
     }
 
+    /* -------------------- internal plumbing -------------------- */
 
-    /**
-     * Сохранение сообщения в файл
-     * @param file файл для сохранения
-     * @param message сообщение для добавления
-     */
     private void save(Path file, ChatMessage message) {
         try {
-            List<ChatMessage> current = readList(file);
+            var current = readList(file);
             current.add(message);
             writeList(file, current);
-            log.debug("Сообщение сохранено в историю: {}", file.getFileName());
         } catch (Exception e) {
-            log.error("Ошибка сохранения сообщения {} в файл {}", message, file, e);
+            log.error("Failed to store message {}", message, e);
         }
     }
 
-    /**
-     * Чтение списка сообщений из файла
-     * @param file файл для чтения
-     * @return список сообщений (пустой список если файл не существует)
-     */
     private List<ChatMessage> readList(Path file) {
-        if (!Files.exists(file)) {
-            log.debug("Файл истории не существует: {}", file);
+        if (!Files.exists(file))
             return new ArrayList<>();
-        }
-
         try {
-            List<ChatMessage> messages = objectMapper.readValue(
+            return objectMapper.readValue(
                     file.toFile(),
-                    new TypeReference<List<ChatMessage>>() {}
-            );
-            log.debug("Загружено {} сообщений из {}", messages.size(), file.getFileName());
-            return new ArrayList<>(messages); // <--- ВАЖНО
+                    new TypeReference<>() {});
         } catch (IOException ex) {
-            log.error("Ошибка чтения файла истории {}: {}", file, ex.getMessage());
+            log.error("Cannot read {} : {}", file, ex.getMessage());
             return new ArrayList<>();
         }
     }
 
-
-    /**
-     * Запись списка сообщений в файл
-     * @param file файл для записи
-     * @param list список сообщений
-     * @throws IOException если произошла ошибка записи
-     */
     private void writeList(Path file, List<ChatMessage> list) throws IOException {
         objectMapper.writerWithDefaultPrettyPrinter()
                 .writeValue(file.toFile(), list);
-        log.trace("Список из {} сообщений записан в {}", list.size(), file.getFileName());
     }
 
-    /**
-     * Вспомогательный метод для логирования событий
-     * @param fmt формат строки
-     * @param args аргументы для форматирования
-     */
+    /* -------------------- облегчённое логирование (опционально) -------------------- */
     private void logEvent(String fmt, Object... args) {
-        if (log.isDebugEnabled()) {
-            log.debug(String.format(fmt, args));
-        }
+        System.out.printf(fmt + "%n", args);
     }
 }

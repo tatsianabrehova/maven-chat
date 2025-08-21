@@ -6,7 +6,6 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import java.time.Instant;
 import java.util.Objects;
 import java.util.UUID;
-
 /**
  * КЛАСС ChatMessage - МОДЕЛЬ СООБЩЕНИЯ ЧАТА
  *
@@ -37,24 +36,15 @@ public class ChatMessage {
     private String  room;
     private String  receiver;
 
-    /**
-     * Конструктор по умолчанию для Jackson десериализации
-     */
+    /** Для Jackson */
     public ChatMessage() {}
 
-    /**
-     * Основной конструктор для создания новых сообщений
-     * Автоматически генерирует ID и устанавливает текущее время
-     *
-     * @param sender отправитель сообщения
-     * @param content текст сообщения
-     * @param room комната/канал назначения
-     * @param receiver получатель (null для публичных сообщений)
-     */
+    /** “Красивый” конструктор для остального кода */
     public ChatMessage(String sender,
                        String content,
                        String room,
                        String receiver) {
+
         this.id        = UUID.randomUUID();
         this.sender    = sender;
         this.content   = content;
@@ -63,16 +53,14 @@ public class ChatMessage {
         this.receiver  = receiver;
     }
 
-    //getters
+    /* ------------------------------------ getters / setters ------------------------------------ */
 
-    public UUID getId()        { return id; }
-    public String getSender()  { return sender; }
-    public String getContent() { return content; }
+    public UUID    getId()        { return id; }
+    public String  getSender()    { return sender; }
+    public String  getContent()   { return content; }
     public Instant getTimestamp() { return timestamp; }
-    public String getRoom()    { return room; }
-    public String getReceiver() { return receiver; }
-
-    //setters
+    public String  getRoom()      { return room; }
+    public String  getReceiver()  { return receiver; }
 
     public void setId(UUID id)               { this.id = id; }
     public void setSender(String sender)     { this.sender = sender; }
@@ -81,26 +69,7 @@ public class ChatMessage {
     public void setRoom(String room)         { this.room = room; }
     public void setReceiver(String receiver) { this.receiver = receiver; }
 
-
-    /**
-     * Проверяет, является ли сообщение приватным
-     * @return true если указан получатель
-     */
-    public boolean isPrivate() {
-        return receiver != null && !receiver.trim().isEmpty();
-    }
-
-    /**
-     * Проверяет, является ли сообщение публичным
-     * @return true если получатель не указан
-     */
-    public boolean isPublic() {
-        return !isPrivate();
-    }
-
-    /**
-     * Сравнение сообщений по уникальному идентификатору
-     */
+    /* ------------------------------------ helpers ------------------------------------ */
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -108,25 +77,19 @@ public class ChatMessage {
         return Objects.equals(id, that.id);
     }
 
-    /**
-     * Хэш-код на основе уникального идентификатора
-     */
     @Override
     public int hashCode() {
         return Objects.hash(id);
     }
 
-    /**
-     * Строковое представление объекта для отладки
-     */
     @Override
     public String toString() {
         return "ChatMessage{" +
-                "id=" + id +
+                "id="        + id +
                 ", sender='" + sender + '\'' +
                 ", content='" + content + '\'' +
                 ", timestamp=" + timestamp +
-                ", room='" + room + '\'' +
+                ", room='"   + room   + '\'' +
                 ", receiver='" + receiver + '\'' +
                 '}';
     }

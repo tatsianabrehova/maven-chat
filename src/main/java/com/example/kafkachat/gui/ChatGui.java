@@ -7,6 +7,8 @@ import com.example.kafkachat.service.UserRoster;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.ActionListener;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 /**
  * Основное окно чата (ChatGui).
@@ -25,7 +27,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
  *   → "private-messages"  для личных сообщений.
  */
 public class ChatGui extends JFrame {
-
     private final KafkaProducerService producer;
     private final KafkaConsumerService publicConsumer;
     private final KafkaConsumerService privateConsumer;
@@ -35,16 +36,16 @@ public class ChatGui extends JFrame {
     private final JTextArea  messageArea   = new JTextArea(20, 50);
     private final JTextField inputField    = new JTextField(40);
     private final JButton    sendButton    = new JButton("Send");
-
     private final DefaultListModel<String> userListModel = new DefaultListModel<>();
-    private final JList<String>            userList      = new JList<>(userListModel);
+    private final JList<String> userList   = new JList<>(userListModel);
+    private final String room;
 
     private final AtomicBoolean running = new AtomicBoolean(true);
-    private final String room;
+
     public ChatGui(String nickname, String room) {
-        this.producer    = new KafkaProducerService();
-        this.room        = room;
-        this.userRoster  = UserRoster.getInstance();
+        this.producer = new KafkaProducerService();
+        this.room     = room;
+        this.userRoster = UserRoster.getInstance();
 
         setTitle("Kafka Chat – Room: " + room);
         setSize(800, 600);
@@ -54,25 +55,28 @@ public class ChatGui extends JFrame {
             public void windowClosing(java.awt.event.WindowEvent e) { shutdown(); }
         });
 
-        SwingUtilities.invokeLater(() -> {
-            createComponents();
-            this.nicknameField.setText(nickname);
-            bindEvents();
-            loadHistory();
-            refreshUsers();
-            userRoster.joinRoom(room, nickname);
-            setVisible(true);
-        });
-
-        publicConsumer  = new KafkaConsumerService("chat-room-" + room,  this::handleMessage);
-        privateConsumer = new KafkaConsumerService("private-messages",   this::handleMessage);
-    }
-
-    private void createComponents() {
+        nicknameField.setText(nickname);
         messageArea.setEditable(false);
         messageArea.setFont(new Font("Dialog", Font.PLAIN, 14));
         userList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 
+        buildLayout();
+        wireActions();
+
+        publicConsumer  = new KafkaConsumerService("chat-room-" + room,
+                this::handlePublicMessage);
+        privateConsumer = new KafkaConsumerService("private-messages",
+                this::handlePrivateMessage);
+
+        loadChatHistory();
+        refreshUserList();
+        userRoster.joinRoom(room, nickname);
+        setVisible(true);
+    }
+
+    /* ---------- helpers ---------- */
+
+    private void buildLayout() {
         setLayout(new BorderLayout(5, 5));
 
         JPanel top = new JPanel(new FlowLayout());
@@ -80,16 +84,15 @@ public class ChatGui extends JFrame {
         top.add(nicknameField);
 
         JPanel right = new JPanel(new BorderLayout());
-        right.setPreferredSize(new Dimension(150, 200));
         right.add(new JLabel("Users"), BorderLayout.NORTH);
         right.add(new JScrollPane(userList), BorderLayout.CENTER);
+        right.setPreferredSize(new Dimension(150, 200));
         JButton privBtn = new JButton("Private Chat");
-        privBtn.addActionListener(e -> openPrivateChat());
         right.add(privBtn, BorderLayout.SOUTH);
 
-        add(top,                         BorderLayout.NORTH);
+        add(top, BorderLayout.NORTH);
         add(new JScrollPane(messageArea), BorderLayout.CENTER);
-        add(right,                        BorderLayout.EAST);
+        add(right, BorderLayout.EAST);
 
         JPanel bottom = new JPanel(new FlowLayout());
         bottom.add(inputField);
@@ -97,38 +100,36 @@ public class ChatGui extends JFrame {
         add(bottom, BorderLayout.SOUTH);
     }
 
-    /* ------------------ event bindings ------------------ */
-    private void bindEvents() {
-        Runnable send = () -> {
+    private void wireActions() {
+        ActionListener sendAction = e -> {
             String nick = nicknameField.getText().trim();
             String text = inputField.getText().trim();
             if (!nick.isEmpty() && !text.isEmpty()) {
                 ChatMessage msg = new ChatMessage(nick, text, room, null);
                 producer.sendMessage("chat-room-" + room, msg);
                 userRoster.sendRoomMessage(room, msg);
-                display(msg);
+                displayMessage(msg);
                 inputField.setText("");
             }
         };
-        sendButton.addActionListener(e -> send.run());
-        inputField.addActionListener(e -> send.run());
-        nicknameField.addActionListener(e -> refreshUsers());
+        sendButton.addActionListener(sendAction);
+        inputField.addActionListener(sendAction);
+
+        JButton privChatBtn = ((JButton) ((JPanel) getContentPane()
+                .getComponent(2)).getComponent(2));
+        privChatBtn.addActionListener(e -> openPrivateChat());
+        nicknameField.addActionListener(e -> refreshUserList());
     }
 
-    private void handleMessage(ChatMessage msg) {
-        if ("System".equals(msg.getSender())) return;
+    private void loadChatHistory() {
         SwingUtilities.invokeLater(() -> {
-            userRoster.sendRoomMessage(room, msg); // сохраняем в историю
-            display(msg);
+            messageArea.setText("");
+            userRoster.getRoomHistory(room)
+                    .forEach(this::displayMessage);
         });
     }
 
-
-    private void loadHistory() {
-        userRoster.getRoomHistory(room).forEach(this::display);
-    }
-
-    private void refreshUsers() {
+    private void refreshUserList() {
         SwingUtilities.invokeLater(() -> {
             userListModel.clear();
             userRoster.allUsers().forEach(userListModel::addElement);
@@ -137,28 +138,42 @@ public class ChatGui extends JFrame {
 
     private void openPrivateChat() {
         String receiver = userList.getSelectedValue();
+        String sender   = nicknameField.getText().trim();
         if (receiver == null) {
-            JOptionPane.showMessageDialog(this, "Выберите пользователя.");
+            JOptionPane.showMessageDialog(this, "Выберите пользователя!");
             return;
         }
-        new PrivateChatGui(producer, nicknameField.getText().trim(), receiver, userRoster);
+        new PrivateChatGui(producer, sender, receiver, userRoster);
     }
 
-    private void display(ChatMessage msg) {
-        String line;
-        String nick = nicknameField.getText().trim();
+    private void handlePublicMessage(ChatMessage msg) {
+        if ("System".equals(msg.getSender())) return;
+        SwingUtilities.invokeLater(() -> displayMessage(msg));
+    }
+
+    private void handlePrivateMessage(ChatMessage msg) {
+        if ("System".equals(msg.getSender())) return;
+        SwingUtilities.invokeLater(() -> displayMessage(msg));
+    }
+
+    private void displayMessage(ChatMessage msg) {
+        String text;
         if (msg.getReceiver() == null) {
-            line = String.format("[%s] %s%n", msg.getSender(), msg.getContent());
-        } else if (nick.equals(msg.getSender())) {
-            line = String.format("[You -> %s] %s%n", msg.getReceiver(), msg.getContent());
+            text = String.format("[%s] %s", msg.getSender(), msg.getContent());
         } else {
-            line = String.format("[%s -> You] %s%n", msg.getSender(), msg.getContent());
+            String nick = nicknameField.getText().trim();
+            if (nick.equals(msg.getSender())) {
+                text = String.format("[You -> %s] %s", msg.getReceiver(), msg.getContent());
+            } else {
+                text = String.format("[%s -> You] %s", msg.getSender(), msg.getContent());
+            }
         }
-        messageArea.append(line);
+        messageArea.append(text + "\n");
         messageArea.setCaretPosition(messageArea.getDocument().getLength());
     }
+
     private void shutdown() {
-        if (running.getAndSet(false)) {
+        if (running.compareAndSet(true, false)) {
             producer.close();
             publicConsumer.shutdown();
             privateConsumer.shutdown();
