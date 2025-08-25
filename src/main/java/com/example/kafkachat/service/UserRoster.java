@@ -1,6 +1,8 @@
 package com.example.kafkachat.service;
 
 import com.example.kafkachat.model.ChatMessage;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
@@ -32,7 +34,7 @@ public final class UserRoster {
     private static final String root = "chat_history";
     private static final History history = new History(Paths.get(root));
     private static volatile UserRoster instance;
-
+    private static final Logger log = LoggerFactory.getLogger(UserRoster.class);
     private final Set<String> users         = ConcurrentHashMap.newKeySet();
     private final Map<String, List<ChatMessage>> roomMessages = new ConcurrentHashMap<>();
     private final Map<String, List<ChatMessage>> userMessages = new ConcurrentHashMap<>();
@@ -48,6 +50,7 @@ public final class UserRoster {
     }
 
     private UserRoster() {
+        log.info("loading data from {}", Paths.get(root));
         loadAllData();
     }
 
@@ -104,6 +107,7 @@ public final class UserRoster {
             for (File f : userFiles) {
                 users.add(f.getName().replace(".json", ""));
             }
+            log.debug("loaded {} users from filesystem", users.size());
         }
 
         Path roomsDir = history.root.resolve("rooms");
@@ -111,7 +115,7 @@ public final class UserRoster {
             for (Path p : ds) {
                 String roomName = p.getFileName().toString().replace(".json", "");
                 roomMessages.put(roomName, history.loadRoomMessages(roomName));
-            }
+            } log.debug("loaded {} rooms from filesystem", roomMessages.size());
         } catch (IOException ignore) {}
 
         for (String u : users) {

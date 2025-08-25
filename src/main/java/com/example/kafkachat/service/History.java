@@ -46,8 +46,9 @@ public final class History {
         try {
             Files.createDirectories(root.resolve("rooms"));
             Files.createDirectories(root.resolve("users"));
+            log.info("history dirs ready at {}", root);
         } catch (IOException e) {
-            log.error("history dirs", e);
+            log.error("could not create history directories", e);
         }
     }
 
@@ -76,14 +77,16 @@ public final class History {
             var current = readList(file);
             current.add(message);
             writeList(file, current);
+            log.debug("saved message to {}", file.getFileName());
         } catch (Exception e) {
-            log.error("Failed to store message {}", message, e);
+            log.error("failed to store message {}", message, e);
         }
     }
 
     private List<ChatMessage> readList(Path file) {
-        if (!Files.exists(file))
-            return new ArrayList<>();
+        if (!Files.exists(file)){
+            log.trace("no history file {}", file.getFileName());
+            return new ArrayList<>();}
         try {
             return objectMapper.readValue(
                     file.toFile(),

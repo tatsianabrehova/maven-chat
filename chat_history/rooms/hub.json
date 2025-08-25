@@ -33,4 +33,46 @@
   "timestamp" : 1755788850.073888100,
   "room" : "hub",
   "receiver" : null
+}, {
+  "id" : "9b15e22d-1b3f-4540-beff-8eaad3929a75",
+  "sender" : "System",
+  "content" : "goshik вошёл",
+  "timestamp" : 1755789455.673381000,
+  "room" : "hub",
+  "receiver" : null
+}, {
+  "id" : "cb7f21b0-3ab7-4d98-8a09-80674a7e2a2b",
+  "sender" : "goshik",
+  "content" : "hi",
+  "timestamp" : 1755789494.355821100,
+  "room" : "hub",
+  "receiver" : null
+}, {
+  "id" : "ea9c8102-edc8-4f61-ab83-5c76cbe9d101",
+  "sender" : "System",
+  "content" : "fosfene вошёл",
+  "timestamp" : 1756165637.446142400,
+  "room" : "hub",
+  "receiver" : null
+}, {
+  "id" : "952b6dd1-1319-4711-a383-780eb24da04b",
+  "sender" : "System",
+  "content" : "goshik вошёл",
+  "timestamp" : 1756165660.070994100,
+  "room" : "hub",
+  "receiver" : null
+}, {
+  "id" : "a8f46335-8b00-41fe-b2f0-ca4cbeace0ee",
+  "sender" : "fosfene",
+  "content" : "ghbdtn",
+  "timestamp" : 1756165677.107943000,
+  "room" : "hub",
+  "receiver" : null
+}, {
+  "id" : "4c8d4a05-645d-4c24-8f33-59acd35683a7",
+  "sender" : "System",
+  "content" : "fosfene вошёл",
+  "timestamp" : 1756165770.689092700,
+  "room" : "hub",
+  "receiver" : null
 } ]
