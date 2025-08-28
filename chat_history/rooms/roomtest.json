@@ -1,0 +1,29 @@
+[ {
+  "id" : "f9c110ad-3df6-4977-aeda-72baa81e255c",
+  "sender" : "System",
+  "content" : "USER вошёл",
+  "timestamp" : 1755792559.666161000,
+  "room" : "roomtest",
+  "receiver" : null
+}, {
+  "id" : "1957d492-e285-4e32-b923-a656a3f82c3f",
+  "sender" : "USER",
+  "content" : "hi guys",
+  "timestamp" : 1755792826.926432800,
+  "room" : "roomtest",
+  "receiver" : null
+}, {
+  "id" : "c940bd63-6199-47df-b014-d43ee6ee2a25",
+  "sender" : "USER",
+  "content" : "in",
+  "timestamp" : 1755792830.433127400,
+  "room" : "roomtest",
+  "receiver" : null
+}, {
+  "id" : "a44cf6aa-59a5-4741-a25e-df493dc1390b",
+  "sender" : "System",
+  "content" : "goshik вошёл",
+  "timestamp" : 1755792897.438792800,
+  "room" : "roomtest",
+  "receiver" : null
+} ]

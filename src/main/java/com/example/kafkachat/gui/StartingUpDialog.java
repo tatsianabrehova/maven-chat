@@ -44,7 +44,11 @@ public class StartingUpDialog extends JDialog {
 
         fetchTopics();                       // асинхронно
     }
-
+    public StartingUpDialog(Frame parent, String initialNick) {
+        this(parent);
+        nicknameField.setText(initialNick);   // имя уже введено
+        nicknameField.setEditable(false);     // пользователь может только комнату изменить
+    }
     private JPanel buildPanel() {
         JPanel p = new JPanel(new GridLayout(4, 1, 5, 5));
         p.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));

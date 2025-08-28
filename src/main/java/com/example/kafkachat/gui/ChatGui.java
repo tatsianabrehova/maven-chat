@@ -10,21 +10,9 @@ import java.awt.*;
 import java.awt.event.ActionListener;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
+
 /**
  * Основное окно чата (ChatGui).
- *
- * Назначение:
- * - Отображает сообщения в выбранной комнате (room).
- * - Позволяет отправлять публичные сообщения.
- * - Отображает список пользователей.
- * - Поддерживает открытие приватного чата.
- *
- * Важные моменты:
- * - Сообщения хранятся в UserRoster (локальная история в памяти).
- * - Дубли убраны через проверку в UserRoster.
- * - Подписки Kafka:
- *   → "chat-room-<room>"  для сообщений этой комнаты.
- *   → "private-messages"  для личных сообщений.
  */
 public class ChatGui extends JFrame {
     private final KafkaProducerService producer;
@@ -39,12 +27,14 @@ public class ChatGui extends JFrame {
     private final DefaultListModel<String> userListModel = new DefaultListModel<>();
     private final JList<String> userList   = new JList<>(userListModel);
     private final String room;
-
+    private final Timer wakeupTimer;
     private final AtomicBoolean running = new AtomicBoolean(true);
+    private final String initialNick;
 
     public ChatGui(String nickname, String room) {
         this.producer = new KafkaProducerService();
         this.room     = room;
+        this.initialNick = nickname;
         this.userRoster = UserRoster.getInstance();
 
         setTitle("Kafka Chat – Room: " + room);
@@ -71,10 +61,13 @@ public class ChatGui extends JFrame {
         loadChatHistory();
         refreshUserList();
         userRoster.joinRoom(room, nickname);
+        wakeupTimer = new Timer(500, e -> {
+            publicConsumer.wakeup();
+            privateConsumer.wakeup();
+        });
+        wakeupTimer.start();
         setVisible(true);
     }
-
-    /* helpers */
 
     private void buildLayout() {
         setLayout(new BorderLayout(5, 5));
@@ -83,10 +76,15 @@ public class ChatGui extends JFrame {
         top.add(new JLabel("Nickname:"));
         top.add(nicknameField);
 
+        JButton exitBtn = new JButton("Покинуть комнату");
+        exitBtn.addActionListener(e -> exitToRoomSelector());
+        top.add(exitBtn);
+
         JPanel right = new JPanel(new BorderLayout());
         right.add(new JLabel("Users"), BorderLayout.NORTH);
         right.add(new JScrollPane(userList), BorderLayout.CENTER);
         right.setPreferredSize(new Dimension(150, 200));
+
         JButton privBtn = new JButton("Private Chat");
         right.add(privBtn, BorderLayout.SOUTH);
 
@@ -107,8 +105,9 @@ public class ChatGui extends JFrame {
             if (!nick.isEmpty() && !text.isEmpty()) {
                 ChatMessage msg = new ChatMessage(nick, text, room, null);
                 producer.sendMessage("chat-room-" + room, msg);
+                // Immediate feedback
                 userRoster.sendRoomMessage(room, msg);
-                displayMessage(msg);
+                SwingUtilities.invokeLater(() -> displayMessage(msg));
                 inputField.setText("");
             }
         };
@@ -147,13 +146,31 @@ public class ChatGui extends JFrame {
     }
 
     private void handlePublicMessage(ChatMessage msg) {
+        // ★★★ ДОБАВЬТЕ ЛОГИРОВАНИЕ ★★★
+        System.out.println("HANDLE PUBLIC: " + msg.getSender() + ": " + msg.getContent() + " Room: " + msg.getRoom());
+
         if ("System".equals(msg.getSender())) return;
-        SwingUtilities.invokeLater(() -> displayMessage(msg));
+
+        // ★★★ ПРОВЕРЯЕМ ДЛЯ КАКОЙ КОМНАТЫ СООБЩЕНИЕ ★★★
+        if (room.equals(msg.getRoom())) {
+            System.out.println("Message for our room! Displaying...");
+            userRoster.sendRoomMessage(room, msg);
+            SwingUtilities.invokeLater(() -> displayMessage(msg));
+        } else {
+            System.out.println("Message for different room: " + msg.getRoom() + ", our room: " + room);
+        }
     }
 
     private void handlePrivateMessage(ChatMessage msg) {
-        if ("System".equals(msg.getSender())) return;
-        SwingUtilities.invokeLater(() -> displayMessage(msg));
+        String myNick = nicknameField.getText().trim();
+        // Принимаем сообщения, где мы получатель ИЛИ отправитель
+        if (myNick.equals(msg.getReceiver()) || myNick.equals(msg.getSender())) {
+            // Сохраняем в историю только если это новое входящее сообщение
+            if (myNick.equals(msg.getReceiver())) {
+                userRoster.sendPrivateMessage(msg.getSender(), myNick, msg.getContent());
+            }
+            SwingUtilities.invokeLater(() -> displayMessage(msg));
+        }
     }
 
     private void displayMessage(ChatMessage msg) {
@@ -179,5 +196,24 @@ public class ChatGui extends JFrame {
             privateConsumer.shutdown();
             dispose();
         }
+    }
+
+    private void exitToRoomSelector() {
+        shutdown();
+        dispose();
+        SwingUtilities.invokeLater(() -> {
+            StartingUpDialog dlg = new StartingUpDialog(null, initialNick);
+            dlg.setVisible(true);
+            if (dlg.isConfirmed()) {
+                new ChatGui(dlg.getNickname(), dlg.getRoom());
+            }
+        });
+    }
+    @Override
+    public void dispose() {
+        if (wakeupTimer != null) {
+            wakeupTimer.stop();
+        }
+        super.dispose();
     }
 }

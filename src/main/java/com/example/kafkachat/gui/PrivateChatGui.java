@@ -1,5 +1,6 @@
 package com.example.kafkachat.gui;
 
+import com.example.kafkachat.kafka.KafkaConsumerService;
 import com.example.kafkachat.kafka.KafkaProducerService;
 import com.example.kafkachat.model.ChatMessage;
 import com.example.kafkachat.service.UserRoster;
@@ -7,6 +8,7 @@ import com.example.kafkachat.service.UserRoster;
 import javax.swing.*;
 import java.awt.*;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
 /**
  * КЛАСС PrivateChatGui - ОКНО ПРИВАТНОГО ЧАТА
  *
@@ -26,8 +28,10 @@ import java.util.List;
  */
 public class PrivateChatGui extends JFrame {
     private final KafkaProducerService producer;
+    private final KafkaConsumerService privateConsumer;
     private final String sender, receiver;
     private final UserRoster userRoster;
+    private final AtomicBoolean running = new AtomicBoolean(true);
 
     private final JTextArea  area   = new JTextArea(15, 40);
     private final JTextField input  = new JTextField(30);
@@ -57,15 +61,17 @@ public class PrivateChatGui extends JFrame {
 
         send.addActionListener(e -> sendMsg());
         input.addActionListener(e -> sendMsg());
+
+        /* --- ДОБАВЛЯЕМ КОНСУМЕР ДЛЯ ПРИВАТНЫХ СООБЩЕНИЙ --- */
+        privateConsumer = new KafkaConsumerService("private-messages", this::handlePrivateMessage);
+
         loadHistory();
         setVisible(true);
     }
 
     private void loadHistory() {
         List<ChatMessage> hist = userRoster.getDialogHistory(sender, receiver);
-        SwingUtilities.invokeLater(() -> {
-            hist.forEach(this::printMsg);
-        });
+        SwingUtilities.invokeLater(() -> hist.forEach(this::printMsg));
     }
 
     private void sendMsg() {
@@ -79,9 +85,29 @@ public class PrivateChatGui extends JFrame {
         input.setText("");
     }
 
+    /* Фильтруем лишние и отображаем только сообщения данного диалога */
+    private void handlePrivateMessage(ChatMessage msg) {
+        // если сообщение приватное и адресовано одному из нас, принимаем
+        if (msg.getReceiver() != null &&
+                (msg.getReceiver().equals(sender) || msg.getReceiver().equals(receiver)) &&
+                (msg.getSender().equals(sender)   || msg.getSender().equals(receiver))) {
+
+            userRoster.sendPrivateMessage(msg.getSender(), msg.getReceiver(), msg.getContent());
+            SwingUtilities.invokeLater(() -> printMsg(msg));
+        }
+    }
+
     private void printMsg(ChatMessage m) {
         String nick = m.getSender().equals(sender) ? "You" : m.getSender();
         area.append(String.format("[%s] %s: %s\n", m.getTimestamp(), nick, m.getContent()));
         area.setCaretPosition(area.getDocument().getLength());
+    }
+
+    @Override
+    public void dispose() {
+        if (running.compareAndSet(true, false)) {
+            privateConsumer.shutdown();
+        }
+        super.dispose();
     }
 }

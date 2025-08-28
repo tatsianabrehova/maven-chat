@@ -1,0 +1,36 @@
+[ {
+  "id" : "c3dda9b3-f722-4597-8153-b1e4a724ab54",
+  "sender" : "goshik",
+  "content" : "булочка с чесноком",
+  "timestamp" : 1755789483.122938100,
+  "room" : null,
+  "receiver" : "ащыауту"
+}, {
+  "id" : "2337d73c-79f2-43c0-ba10-7142c045a4fd",
+  "sender" : "USER",
+  "content" : "che kak",
+  "timestamp" : 1755792843.682662700,
+  "room" : null,
+  "receiver" : "goshik"
+}, {
+  "id" : "85af4ac6-ca4a-4b33-80fe-1b401ed7a0aa",
+  "sender" : "fosfene",
+  "content" : "ghbdtn",
+  "timestamp" : 1756165703.260602300,
+  "room" : null,
+  "receiver" : "goshik"
+}, {
+  "id" : "b96a7cbf-a2ca-4584-b136-fe4eac94cf86",
+  "sender" : "goshik",
+  "content" : "hiii",
+  "timestamp" : 1756173371.078967600,
+  "room" : null,
+  "receiver" : "fosfene"
+}, {
+  "id" : "a534a26e-68a6-4521-ad8b-5dce22e40984",
+  "sender" : "fosfene",
+  "content" : "hi",
+  "timestamp" : 1756382596.194812000,
+  "room" : null,
+  "receiver" : "goshik"
+} ]

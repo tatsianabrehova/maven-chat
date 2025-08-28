@@ -1,5 +1,5 @@
 package com.example.kafkachat.kafka;
-
+import com.example.kafkachat.service.UserRoster;
 import com.example.kafkachat.model.ChatMessage;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
@@ -61,17 +61,29 @@ public class KafkaProducerService {
     public void sendMessage(String topic, ChatMessage message) {
         try {
             String jsonMessage = mapper.writeValueAsString(message);
-            ProducerRecord<String, String> record = new ProducerRecord<>(topic, message.getSender(), jsonMessage);
+
+            // 1) Для приватных сообщений ­– в качестве ключа само имя получателя
+            final String key = topic.equals("private-messages")
+                    ? message.getReceiver()
+                    : message.getSender();
+
+            ProducerRecord<String, String> record = new ProducerRecord<>(topic, key, jsonMessage);
 
             producer.send(record, (metadata, exception) -> {
                 if (exception != null) {
                     logger.error("Ошибка при отправке сообщения в топик {}: {}", topic, exception.getMessage());
                 } else {
+                    /* 2) сохраняем историю только для комнат ‑ приватные сохраняются в GUI-консьюмере */
+                    if (topic.startsWith("chat-room-")) {
+                        UserRoster.getInstance().sendRoomMessage(
+                                topic.replace("chat-room-", ""),   // только имя комнаты
+                                message
+                        );
+                    }
                     logger.debug("Сообщение успешно отправлено в топик {}, partition {}, offset {}",
                             metadata.topic(), metadata.partition(), metadata.offset());
                 }
             });
-
             logger.info("Отправлено сообщение в {}: {} -> {}: {}",
                     topic,
                     message.getSender(),
@@ -80,8 +92,8 @@ public class KafkaProducerService {
         } catch (Exception e) {
             logger.error("Ошибка при сериализации или отправке сообщения", e);
         }
+        producer.flush(); // принудительная отправка/выполнение callback немедленно
     }
-
     /**
      * Асинхронная отправка приватного сообщения в фоновом режиме
      * @param message приватное сообщение для отправки
