@@ -87,7 +87,7 @@ public final class UserRoster {
 
     public void sendRoomMessage(String room, ChatMessage msg) {
         history.saveRoomMessage(room, msg);
-        getRoomHistory(room).add(msg);
+        roomMessages.computeIfAbsent(room, k -> new ArrayList<>()).add(msg);
     }
 
     public void sendPrivateMessage(String sender, String receiver, String txt) {

@@ -2,6 +2,7 @@ package com.example.kafkachat.kafka;
 import com.example.kafkachat.service.UserRoster;
 import com.example.kafkachat.model.ChatMessage;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -42,7 +43,7 @@ public class KafkaProducerService {
      */
     public KafkaProducerService() {
         Properties props = new Properties();
-        props.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, "localhost:9092");
+        props.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, "host.docker.internal:9092");
         props.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class.getName());
         props.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, StringSerializer.class.getName());
         props.put(ProducerConfig.ACKS_CONFIG, "all"); // Гарантированная доставка
@@ -112,7 +113,7 @@ public class KafkaProducerService {
     public void close() {
         if (producer != null) {
             try {
-                producer.flush(); // Гарантированная отправка всех сообщений
+                //producer.flush(); // Гарантированная отправка всех сообщений
                 producer.close(); // Корректное освобождение ресурсов
                 logger.info("KafkaProducerService закрыт");
             } catch (Exception e) {

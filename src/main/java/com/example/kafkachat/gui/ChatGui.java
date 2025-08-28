@@ -19,7 +19,7 @@ public class ChatGui extends JFrame {
     private final KafkaConsumerService publicConsumer;
     private final KafkaConsumerService privateConsumer;
     private final UserRoster userRoster;
-
+    private final Timer debugTimer;
     private final JTextField nicknameField = new JTextField(15);
     private final JTextArea  messageArea   = new JTextArea(20, 50);
     private final JTextField inputField    = new JTextField(40);
@@ -61,11 +61,19 @@ public class ChatGui extends JFrame {
         loadChatHistory();
         refreshUserList();
         userRoster.joinRoom(room, nickname);
-        wakeupTimer = new Timer(500, e -> {
+        // ★★★ wakeupTimer ДЛЯ ПРИНУДИТЕЛЬНОГО POLLING ★★★
+        wakeupTimer = new Timer(300, e -> {
             publicConsumer.wakeup();
             privateConsumer.wakeup();
         });
         wakeupTimer.start();
+        debugTimer = new Timer(1000, e -> {
+            System.out.println("=== DEBUG TIMER ===");
+            System.out.println("Room: " + room);
+            System.out.println("Users: " + userRoster.allUsers());
+            System.out.println("===================");
+        });
+        debugTimer.start();
         setVisible(true);
     }
 
@@ -144,8 +152,31 @@ public class ChatGui extends JFrame {
         }
         new PrivateChatGui(producer, sender, receiver, userRoster);
     }
-
     private void handlePublicMessage(ChatMessage msg) {
+        System.out.println("HANDLE PUBLIC: " + msg.getSender() + ": " + msg.getContent() + " Room: " + msg.getRoom());
+        System.out.println("=== GOT MESSAGE ===");
+        System.out.println("From: " + msg.getSender());
+        System.out.println("Text: " + msg.getContent());
+        System.out.println("Room: " + msg.getRoom());
+        System.out.println("===================");
+        // Пропускаем системные сообщения
+        if ("System".equals(msg.getSender())) {
+            return;
+        }
+
+        // ФИЛЬТРУЕМ: только сообщения для нашей комнаты
+        if (room.equals(msg.getRoom())) {
+            System.out.println("Message for our room! Displaying...");
+            userRoster.sendRoomMessage(room, msg);
+            SwingUtilities.invokeLater(() -> {
+                messageArea.append(msg.getSender() + ": " + msg.getContent() + "\n");
+                messageArea.setCaretPosition(messageArea.getDocument().getLength());
+            });
+        } else {
+            System.out.println("Message for different room: " + msg.getRoom() + ", our room: " + room);
+        }
+    }
+    /* private void handlePublicMessage(ChatMessage msg) {
         // ★★★ ДОБАВЬТЕ ЛОГИРОВАНИЕ ★★★
         System.out.println("HANDLE PUBLIC: " + msg.getSender() + ": " + msg.getContent() + " Room: " + msg.getRoom());
 
@@ -159,7 +190,7 @@ public class ChatGui extends JFrame {
         } else {
             System.out.println("Message for different room: " + msg.getRoom() + ", our room: " + room);
         }
-    }
+    }*/
 
     private void handlePrivateMessage(ChatMessage msg) {
         String myNick = nicknameField.getText().trim();

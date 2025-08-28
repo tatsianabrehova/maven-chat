@@ -64,7 +64,6 @@ public class PrivateChatGui extends JFrame {
 
         /* --- ДОБАВЛЯЕМ КОНСУМЕР ДЛЯ ПРИВАТНЫХ СООБЩЕНИЙ --- */
         privateConsumer = new KafkaConsumerService("private-messages", this::handlePrivateMessage);
-
         loadHistory();
         setVisible(true);
     }
@@ -102,7 +101,6 @@ public class PrivateChatGui extends JFrame {
         area.append(String.format("[%s] %s: %s\n", m.getTimestamp(), nick, m.getContent()));
         area.setCaretPosition(area.getDocument().getLength());
     }
-
     @Override
     public void dispose() {
         if (running.compareAndSet(true, false)) {
